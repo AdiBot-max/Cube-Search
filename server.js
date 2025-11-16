@@ -2,24 +2,46 @@ const express = require('express');
 const app = express();
 const PORT = 3000;
 
-// Serve frontend
 app.use(express.static('.'));
 
-// Proxy route
 app.get('/search', async (req, res) => {
   const query = req.query.q;
-  if (!query) return res.status(400).json({ error: 'Query missing' });
+  if (!query) {
+    return res.status(400).json({ error: 'Query missing' });
+  }
 
   try {
     const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-
-    // Node 18+ has fetch globally
-    const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
     const html = await response.text();
-    res.send(html);
+
+    // Parse HTML to extract result links
+    const links = [];
+    const regex = /<a class="result__a" href="([^"]+)">([^<]+)<\/a>/g;
+    let match;
+    while ((match = regex.exec(html)) !== null) {
+      let link = match[1];
+      const title = match[2];
+
+      // If URL is a redirect with uddg, decode it
+      try {
+        const urlObj = new URL(link);
+        if (urlObj.searchParams.get('uddg')) {
+          link = decodeURIComponent(urlObj.searchParams.get('uddg'));
+        }
+      } catch (e) {
+        // ignore malformed URL
+      }
+
+      links.push({ title, url: link });
+    }
+
+    res.json({ query, results: links });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to fetch DuckDuckGo' });
+    console.error('Search error:', err);
+    res.status(500).json({ error: 'Failed to fetch or parse DuckDuckGo' });
   }
 });
 
