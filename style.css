@@ -1,74 +1,65 @@
-/* Base */
 body {
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+  font-family: Arial, sans-serif;
+  background: #111;
   color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  margin: 0;
+  padding: 20px;
 }
 
 .container {
-  text-align: center;
-  width: 100%;
-  max-width: 500px;
+  max-width: 600px;
+  margin: auto;
 }
 
 .title {
-  font-size: 3rem;
   color: #008cff;
-  margin-bottom: 40px;
-  transition: transform 0.3s, opacity 0.5s;
-  opacity: 0;
-  transform: translateY(-20px);
-  animation: fadeInTitle 0.6s forwards;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-@keyframes fadeInTitle {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Search box */
 .search-box {
   display: flex;
-  justify-content: center;
   gap: 8px;
+  justify-content: center;
+  margin-bottom: 30px;
 }
 
 input {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 8px;
+  border-radius: 4px;
   border: none;
   font-size: 1rem;
-  transition: box-shadow 0.3s, transform 0.2s;
-}
-
-input:focus {
-  outline: none;
-  box-shadow: 0 0 10px #008cff;
-  transform: scale(1.02);
 }
 
 button {
-  padding: 12px 20px;
-  border-radius: 8px;
-  border: none;
+  padding: 8px 12px;
   background: #008cff;
-  color: #fff;
-  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.3s, transform 0.2s;
+  transition: background 0.2s;
 }
 
 button:hover {
   background: #005bbb;
-  transform: scale(1.05);
 }
 
-button:active {
-  transform: scale(0.95);
+.result {
+  margin: 10px 0;
+}
+
+.result a {
+  color: #1a0dab;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.result a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: red;
 }
