@@ -1,38 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cube Search Homepage</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cube Search</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="container">
-  <h1 class="title">Cube Search</h1>
-  <div class="search-box">
-    <input type="text" id="query" placeholder="Type something...">
-    <button id="searchBtn">Search</button>
+  <div class="container">
+    <h1 class="title">Cube Search</h1>
+    <div class="search-box">
+      <input type="text" id="query" placeholder="Type something..." />
+      <button id="searchBtn">Search</button>
+    </div>
+    <div id="results"></div>
   </div>
-</div>
 
-<script>
-  const input = document.getElementById('query');
-  const button = document.getElementById('searchBtn');
+  <script>
+    const input = document.getElementById('query');
+    const btn = document.getElementById('searchBtn');
+    const resultsDiv = document.getElementById('results');
 
-  function search() {
-    const query = input.value.trim();
-    if (!query) return;
-    // Redirect to Cube Search homepage with query
-    window.location.href = `https://cube-search.onrender.com/?q=${encodeURIComponent(query)}`;
-  }
+    btn.addEventListener('click', doSearch);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doSearch();
+    });
 
-  // Click button
-  button.addEventListener('click', search);
+    async function doSearch() {
+      const q = input.value.trim();
+      if (!q) return;
+      resultsDiv.innerHTML = '<p>Loading…</p>';
+      try {
+        const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        renderResults(data.results);
+      } catch (e) {
+        resultsDiv.innerHTML = '<p class="error">Error fetching results</p>';
+        console.error(e);
+      }
+    }
 
-  // Press Enter
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Enter') search();
-  });
-</script>
+    function renderResults(results) {
+      if (!results.length) {
+        resultsDiv.innerHTML = `<p>No results found for “${input.value}”</p>`;
+        return;
+      }
+      resultsDiv.innerHTML = '';
+      results.forEach(r => {
+        const d = document.createElement('div');
+        d.className = 'result';
+        d.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a>`;
+        resultsDiv.appendChild(d);
+      });
+    }
+  </script>
 </body>
 </html>
