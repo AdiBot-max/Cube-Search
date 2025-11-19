@@ -1,58 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cube Search</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cube Search</title>
+
+<style>
+/* ===== Base ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  background: #050505;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+/* ===== Container ===== */
+.wrapper {
+  width: 100%;
+  max-width: 900px;
+}
+
+/* ===== Title ===== */
+h1 {
+  text-align: center;
+  font-size: 3rem;
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  background: linear-gradient(45deg, #4af, #0ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== Search Bar ===== */
+.search-box {
+  display: flex;
+  width: 100%;
+  background: #111;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 0 20px #0ff4;
+}
+
+.search-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #0ff;
+  font-size: 1.3rem;
+  padding: 10px;
+}
+
+.search-box button {
+  background: #0ff;
+  color: #000;
+  border: none;
+  font-weight: bold;
+  padding: 12px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.search-box button:hover {
+  background: #4af;
+}
+
+/* ===== Results ===== */
+#cube-results {
+  margin-top: 35px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Result Card */
+.cube-result-item {
+  background: #0a0a0a;
+  border: 2px solid #0ff5;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 0 25px #0ff2 inset, 0 0 15px #0ff4;
+  transition: 0.25s;
+}
+
+.cube-result-item:hover {
+  transform: translateY(-3px);
+  border-color: #4af;
+  box-shadow: 0 0 25px #4af6 inset, 0 0 22px #4af4;
+}
+
+/* Result Title */
+.cube-result-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #0ff;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.cube-result-title:hover {
+  color: #4af;
+}
+
+/* No Results */
+.no-results {
+  font-size: 1.3rem;
+  text-align: center;
+  color: #888;
+  margin-top: 40px;
+}
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <h1 class="title">Cube Search</h1>
-    <div class="search-box">
-      <input type="text" id="query" placeholder="Type something..." />
-      <button id="searchBtn">Search</button>
-    </div>
-    <div id="results"></div>
+
+<div class="wrapper">
+  <h1>Cube Search</h1>
+
+  <div class="search-box">
+    <input type="text" id="query" placeholder="Search the universe...">
+    <button onclick="startSearch()">Search</button>
   </div>
 
-  <script>
-    const input = document.getElementById('query');
-    const btn = document.getElementById('searchBtn');
-    const resultsDiv = document.getElementById('results');
+  <div id="cube-results"></div>
+</div>
 
-    btn.addEventListener('click', doSearch);
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter') doSearch();
-    });
 
-    async function doSearch() {
-      const q = input.value.trim();
-      if (!q) return;
-      resultsDiv.innerHTML = '<p>Loading…</p>';
-      try {
-        const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        renderResults(data.results);
-      } catch (e) {
-        resultsDiv.innerHTML = '<p class="error">Error fetching results</p>';
-        console.error(e);
-      }
-    }
+<script>
+async function startSearch() {
+  const q = document.getElementById("query").value.trim();
+  if (!q) return;
 
-    function renderResults(results) {
-      if (!results.length) {
-        resultsDiv.innerHTML = `<p>No results found for “${input.value}”</p>`;
-        return;
-      }
-      resultsDiv.innerHTML = '';
-      results.forEach(r => {
-        const d = document.createElement('div');
-        d.className = 'result';
-        d.innerHTML = `<a href="${r.url}" target="_blank">${r.title}</a>`;
-        resultsDiv.appendChild(d);
-      });
-    }
-  </script>
+  document.getElementById("cube-results").innerHTML = `<div class="no-results">Loading...</div>`;
+  cubeSearch(q);
+}
+
+async function cubeSearch(query) {
+  const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+
+  const response = await fetch(url);
+  const html = await response.text();
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  // DuckDuckGo lite structure
+  const results = [...doc.querySelectorAll(".result__title a")].map(a => ({
+    title: a.textContent.trim(),
+    link: a.href
+  }));
+
+  renderCubeResults(results);
+}
+
+function renderCubeResults(results) {
+  const box = document.getElementById("cube-results");
+  box.innerHTML = "";
+
+  if (results.length === 0) {
+    box.innerHTML = `<div class="no-results">No results found.</div>`;
+    return;
+  }
+
+  results.forEach(r => {
+    const item = document.createElement("div");
+    item.className = "cube-result-item";
+
+    item.innerHTML = `
+      <a href="${r.link}" target="_blank" class="cube-result-title">
+        ${r.title}
+      </a>
+    `;
+
+    box.appendChild(item);
+  });
+}
+</script>
+
 </body>
 </html>
