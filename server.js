@@ -1,23 +1,33 @@
 import express from "express";
 import fetch from "node-fetch";
 import { load } from "cheerio";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Allow all frontend requests
+// Fix for __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Allow frontend requests
 app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     next();
 });
 
-// Main search route
+// Serve index.html (the UI)
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Proxy route
 app.get("/api/search", async (req, res) => {
     const query = req.query.q;
     if (!query) return res.json({ results: [] });
 
     try {
-        // Fetch DuckDuckGo HTML
         const response = await fetch(
             `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`
         );
@@ -31,22 +41,15 @@ app.get("/api/search", async (req, res) => {
             const url = $(elem).find("a").attr("href");
             const snippet = $(elem).parent().find(".result__snippet").text().trim();
 
-            if (title && url) {
-                results.push({ title, url, snippet });
-            }
+            if (title && url) results.push({ title, url, snippet });
         });
 
         res.json({ results });
 
     } catch (err) {
-        console.error("ERROR:", err);
+        console.error(err);
         res.json({ results: [] });
     }
-});
-
-// Serve index.html if opened manually
-app.get("/", (req, res) => {
-    res.send("Cube Search backend running. Use /api/search?q=EXAMPLE");
 });
 
 app.listen(PORT, () => {
