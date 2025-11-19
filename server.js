@@ -1,43 +1,48 @@
 import express from "express";
 import fetch from "node-fetch";
-import cheerio from "cheerio";
-import path from "path";
-import { fileURLToPath } from "url";
+import { load } from "cheerio";
 
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const PORT = process.env.PORT || 3000;
 
-app.use(express.static(__dirname));
+// Allow frontend requests
+app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    next();
+});
 
+// Proxy route
 app.get("/api/search", async (req, res) => {
-    const q = req.query.q;
-    if (!q) return res.json({ results: [] });
+    const query = req.query.q;
+    if (!query) return res.json({ results: [] });
 
     try {
-        const ddg = await fetch(`https://duckduckgo.com/html/?q=${encodeURIComponent(q)}`, {
-            headers: { "User-Agent": "Mozilla/5.0" }
-        });
+        // Fetch DuckDuckGo HTML
+        const response = await fetch(`https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`);
+        const html = await response.text();
 
-        const html = await ddg.text();
-        const $ = cheerio.load(html);
-
+        // Load into Cheerio
+        const $ = load(html);
         const results = [];
 
-        $(".result").each((i, el) => {
-            const title = $(el).find(".result__a").text().trim();
-            const url = $(el).find(".result__a").attr("href");
-            const snippet = $(el).find(".result__snippet").text().trim();
+        $(".result__title").each((i, elem) => {
+            const title = $(elem).text().trim();
+            const url = $(elem).find("a").attr("href");
+            const snippet = $(elem).parent().find(".result__snippet").text().trim();
 
-            if (title && url) results.push({ title, url, snippet });
+            if (title && url) {
+                results.push({ title, url, snippet });
+            }
         });
 
         res.json({ results });
 
     } catch (err) {
+        console.error(err);
         res.json({ results: [] });
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port " + PORT));
+app.listen(PORT, () => {
+    console.log("Server running on port " + PORT);
+});
