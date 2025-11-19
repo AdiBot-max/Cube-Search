@@ -6,184 +6,142 @@
 <title>Cube Search</title>
 
 <style>
-/* ===== Base ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
-}
+    body {
+        background: #0d0d0d;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
 
-body {
-  background: #050505;
-  color: #fff;
-  display: flex;
-  justify-content: center;
-  padding: 40px;
-}
+    h1 {
+        font-size: 42px;
+        margin-top: 40px;
+        color: #4af1ff;
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px #4af1ff;
+    }
 
-/* ===== Container ===== */
-.wrapper {
-  width: 100%;
-  max-width: 900px;
-}
+    #searchBox {
+        margin-top: 30px;
+        width: 60%;
+        padding: 14px;
+        font-size: 20px;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        background: #1a1a1a;
+        color: #eee;
+        box-shadow: 0 0 10px #333;
+    }
 
-/* ===== Title ===== */
-h1 {
-  text-align: center;
-  font-size: 3rem;
-  letter-spacing: 2px;
-  margin-bottom: 40px;
-  background: linear-gradient(45deg, #4af, #0ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
+    button {
+        margin-left: 10px;
+        padding: 14px 20px;
+        font-size: 18px;
+        border: none;
+        border-radius: 10px;
+        background: #4af1ff;
+        color: #000;
+        cursor: pointer;
+        transition: 0.2s;
+    }
 
-/* ===== Search Bar ===== */
-.search-box {
-  display: flex;
-  width: 100%;
-  background: #111;
-  border-radius: 14px;
-  padding: 12px;
-  box-shadow: 0 0 20px #0ff4;
-}
+    button:hover {
+        background: #35b7c4;
+    }
 
-.search-box input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #0ff;
-  font-size: 1.3rem;
-  padding: 10px;
-}
+    #results {
+        margin: 40px auto;
+        width: 80%;
+        max-width: 900px;
+        text-align: left;
+    }
 
-.search-box button {
-  background: #0ff;
-  color: #000;
-  border: none;
-  font-weight: bold;
-  padding: 12px 22px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-}
+    .result {
+        padding: 18px;
+        margin-bottom: 20px;
+        background: #141414;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #222;
+        transition: 0.2s;
+    }
 
-.search-box button:hover {
-  background: #4af;
-}
+    .result:hover {
+        background: #1e1e1e;
+    }
 
-/* ===== Results ===== */
-#cube-results {
-  margin-top: 35px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+    .result a {
+        font-size: 24px;
+        color: #4af1ff;
+        text-decoration: none;
+    }
 
-/* Result Card */
-.cube-result-item {
-  background: #0a0a0a;
-  border: 2px solid #0ff5;
-  padding: 20px;
-  border-radius: 20px;
-  box-shadow: 0 0 25px #0ff2 inset, 0 0 15px #0ff4;
-  transition: 0.25s;
-}
-
-.cube-result-item:hover {
-  transform: translateY(-3px);
-  border-color: #4af;
-  box-shadow: 0 0 25px #4af6 inset, 0 0 22px #4af4;
-}
-
-/* Result Title */
-.cube-result-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #0ff;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-.cube-result-title:hover {
-  color: #4af;
-}
-
-/* No Results */
-.no-results {
-  font-size: 1.3rem;
-  text-align: center;
-  color: #888;
-  margin-top: 40px;
-}
+    .result p {
+        margin-top: 10px;
+        font-size: 16px;
+        opacity: 0.8;
+    }
 </style>
 </head>
-
 <body>
 
-<div class="wrapper">
-  <h1>Cube Search</h1>
+<h1>Cube Search</h1>
 
-  <div class="search-box">
-    <input type="text" id="query" placeholder="Search the universe...">
-    <button onclick="startSearch()">Search</button>
-  </div>
+<input id="searchBox" type="text" placeholder="Search the web...">
+<button onclick="startSearch()">Search</button>
 
-  <div id="cube-results"></div>
-</div>
-
+<div id="results"></div>
 
 <script>
-async function startSearch() {
-  const q = document.getElementById("query").value.trim();
-  if (!q) return;
+    // CHANGE THIS TO YOUR BACKEND PROXY URL:
+    const PROXY_URL = "https://cube-search-engine.onrender.com/api/search";
 
-  document.getElementById("cube-results").innerHTML = `<div class="no-results">Loading...</div>`;
-  cubeSearch(q);
-}
+    async function startSearch() {
+        const query = document.getElementById("searchBox").value.trim();
+        if (!query) return;
 
-async function cubeSearch(query) {
-  const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+        document.getElementById("results").innerHTML = "<h3>Loading...</h3>";
 
-  const response = await fetch(url);
-  const html = await response.text();
+        await cubeSearch(query);
+    }
 
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+    async function cubeSearch(query) {
+        try {
+            // The only update you asked for:
+            const response = await fetch(`${PROXY_URL}?q=${encodeURIComponent(query)}`);
 
-  // DuckDuckGo lite structure
-  const results = [...doc.querySelectorAll(".result__title a")].map(a => ({
-    title: a.textContent.trim(),
-    link: a.href
-  }));
+            const data = await response.json();
+            displayResults(data);
 
-  renderCubeResults(results);
-}
+        } catch (err) {
+            document.getElementById("results").innerHTML = "<h3>Error loading results.</h3>";
+            console.error(err);
+        }
+    }
 
-function renderCubeResults(results) {
-  const box = document.getElementById("cube-results");
-  box.innerHTML = "";
+    function displayResults(data) {
+        const container = document.getElementById("results");
+        container.innerHTML = "";
 
-  if (results.length === 0) {
-    box.innerHTML = `<div class="no-results">No results found.</div>`;
-    return;
-  }
+        if (!data || !data.results || data.results.length === 0) {
+            container.innerHTML = "<h3>No results found.</h3>";
+            return;
+        }
 
-  results.forEach(r => {
-    const item = document.createElement("div");
-    item.className = "cube-result-item";
+        data.results.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "result";
 
-    item.innerHTML = `
-      <a href="${r.link}" target="_blank" class="cube-result-title">
-        ${r.title}
-      </a>
-    `;
+            div.innerHTML = `
+                <a href="${item.url}" target="_blank">${item.title}</a>
+                <p>${item.snippet}</p>
+            `;
 
-    box.appendChild(item);
-  });
-}
+            container.appendChild(div);
+        });
+    }
 </script>
 
 </body>
