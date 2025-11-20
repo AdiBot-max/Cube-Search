@@ -1,152 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Cube Search - Fast and clean search engine interface">
 <title>Cube Search</title>
-
 <style>
-    body {
-        background: linear-gradient(160deg, #000000, #0a0f16, #001e26);
-        color: #e9fafe;
-        font-family: "Segoe UI", Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-    }
-    h1 {
-        font-size: 50px;
-        margin-top: 40px;
-        color: #4af1ff;
-        letter-spacing: 3px;
-        text-shadow: 0 0 20px #4af1ffaa;
-    }
-    #searchBox {
-        margin-top: 35px;
-        width: 65%;
-        padding: 16px;
-        font-size: 20px;
-        border-radius: 14px;
-        border: 2px solid #4af1ff33;
-        background: #0d151c;
-        color: #dffbff;
-        outline: none;
-        box-shadow: 0 0 20px #4af1ff22;
-        transition: 0.25s;
-    }
-    #searchBox:focus {
-        border-color: #4af1ff;
-        box-shadow: 0 0 25px #4af1ff55;
-    }
-    button {
-        margin-left: 12px;
-        padding: 16px 22px;
-        font-size: 18px;
-        border: none;
-        border-radius: 14px;
-        background: #4af1ff;
-        color: #000;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.25s;
-        box-shadow: 0 0 20px #4af1ff55;
-    }
-    button:hover {
-        background: #35c7d4;
-        box-shadow: 0 0 25px #4af1ff88;
-    }
-    #results {
-        margin: 45px auto;
-        width: 85%;
-        max-width: 950px;
-        text-align: left;
-    }
-    .result {
-        padding: 22px;
-        margin-bottom: 22px;
-        background: #0d151c;
-        border-radius: 18px;
-        border: 1px solid #4af1ff22;
-        box-shadow: 0 0 18px #000a;
-        transition: 0.3s;
-    }
-    .result:hover {
-        background: #101c27;
-        transform: translateY(-2px);
-        box-shadow: 0 0 25px #4af1ff33;
-    }
-    .result a {
-        font-size: 26px;
-        font-weight: bold;
-        color: #4af1ff;
-        text-decoration: none;
-        transition: 0.2s;
-    }
-    .result a:hover {
-        text-shadow: 0 0 10px #4af1ff;
-    }
-    .result p {
-        margin-top: 12px;
-        font-size: 17px;
-        opacity: 0.85;
-        color: #d6f7ff;
-    }
+    body { background:#000; color:#4af1ff; font-family:Arial; text-align:center; padding:40px; }
+    input { width:60%; padding:14px; font-size:18px; border-radius:10px; border:2px solid #4af1ff77; background:#0d151c; color:white; }
+    button { padding:14px 20px; font-size:18px; border:none; border-radius:10px; background:#4af1ff; cursor:pointer; }
+    .result { margin:20px auto; width:70%; background:#0d151c; padding:20px; border-radius:10px; border:1px solid #4af1ff33; }
+    a { color:#4af1ff; font-size:22px; text-decoration:none; }
 </style>
 </head>
 <body>
 
 <h1>Cube Search</h1>
 
-<input id="searchBox" type="text" placeholder="Search the web...">
+<input id="searchBox" placeholder="Search…">
 <button onclick="startSearch()">Search</button>
 
 <div id="results"></div>
 
 <script>
-const PROXY_URL = "https://search-engine-cube.onrender.com/api/search";
-
-document.getElementById("searchBox").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") startSearch();
-});
-
 async function startSearch() {
     const q = document.getElementById("searchBox").value.trim();
     if (!q) return;
 
-    document.getElementById("results").innerHTML = "<h3>Loading...</h3>";
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
 
-    await cubeSearch(q);
-}
-
-async function cubeSearch(query) {
-    try {
-        const response = await fetch(`${PROXY_URL}?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
-        displayResults(data);
-    } catch (err) {
-        console.error(err);
-        document.getElementById("results").innerHTML = "<h3>Error loading results.</h3>";
-    }
-}
-
-function displayResults(data) {
     const container = document.getElementById("results");
     container.innerHTML = "";
 
-    if (!data || !data.results || data.results.length === 0) {
-        container.innerHTML = "<h3>No results found.</h3>";
-        return;
-    }
+    const results = data.webPages?.value || [];
 
-    data.results.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "result";
-        div.innerHTML = `
-            <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.title}</a>
-            <p>${item.snippet}</p>
+    results.forEach(r => {
+        container.innerHTML += `
+            <div class="result">
+                <a href="${r.url}" target="_blank">${r.name}</a>
+                <p>${r.snippet}</p>
+            </div>
         `;
-        container.appendChild(div);
     });
 }
 </script>
