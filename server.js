@@ -1,39 +1,41 @@
-const fetch = require('node-fetch');
+const express = require("express");
+const fetch = require("node-fetch");
+const cors = require("cors");
+const path = require("path");
 
-// Replace with your RapidAPI key
-const RAPIDAPI_KEY = '404e0293ecmshad6bea346293be7p171d07jsnabb538c1b944';
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-/**
- * Search jobs dynamically
- * @param {string} job - Job title or keyword
- * @param {string} city - City name
- */
-async function searchJobs(job, city) {
-  const url = new URL('https://jsearch.p.rapidapi.com/search');
-  url.search = new URLSearchParams({
-    query: `${job} jobs in ${city}`,
-    page: '1',
-    num_pages: '1',
-    country: 'us',
-    date_posted: 'all'
-  });
+app.use(cors());
+app.use(express.static(__dirname));
 
-  const options = {
-    method: 'GET',
-    headers: {
-      'X-RapidAPI-Key': RAPIDAPI_KEY,
-      'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
-    }
-  };
+const RAPIDAPI_KEY = "404e0293ecmshad6bea346293be7p171d07jsnabb538c1b944";
+
+app.get("/api/search", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.json({ error: "Missing ?q=" });
+
+  const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(
+    query
+  )}&page=1&num_pages=1&country=us&date_posted=all`;
 
   try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    console.log(JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error('Error fetching jobs:', err);
-  }
-}
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-RapidAPI-Key": RAPIDAPI_KEY,
+        "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+      },
+    });
 
-// Example usage:
-searchJobs('developer', 'chicago');
+    const data = await response.json();
+    res.json(data);
+
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log("Cube Search backend running on port " + PORT);
+});
