@@ -1,45 +1,46 @@
-import express from "express";
-import fetch from "node-fetch";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const express = require("express");
+const fetch = require("node-fetch");
+const cors = require("cors");
 
 const app = express();
+app.use(cors());
 
-// RapidAPI key
 const RAPID_KEY = "404e0293ecmshad6bea346293be7p171d07jsnabb538c1b944";
 
-// Serve index.html
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// Proxy search endpoint
+// MAIN SEARCH ENDPOINT
 app.get("/api/search", async (req, res) => {
-    const q = req.query.q;
-    if (!q) return res.status(400).json({ error: "Missing ?q=" });
+  const q = req.query.q;
+  if (!q) return res.json({ results: [] });
 
-    const url = `https://bing-web-search1.p.rapidapi.com/search?q=${encodeURIComponent(q)}&mkt=en-us&safeSearch=Off&textFormat=Raw`;
+  const url = `https://bing-web-search1.p.rapidapi.com/search?mkt=en-us&safeSearch=Off&textFormat=Raw&q=${encodeURIComponent(
+    q
+  )}`;
 
-    try {
-        const response = await fetch(url, {
-            method: "GET",
-            headers: {
-                "x-rapidapi-host": "bing-web-search1.p.rapidapi.com",
-                "x-rapidapi-key": RAPID_KEY
-            }
-        });
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-RapidAPI-Key": RAPID_KEY,
+        "X-RapidAPI-Host": "bing-web-search1.p.rapidapi.com",
+      },
+    });
 
-        const data = await response.json();
-        res.json(data);
+    const bingData = await response.json();
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Search failed" });
-    }
+    // Format results for your frontend
+    const results = (bingData.webPages?.value || []).map((item) => ({
+      title: item.name,
+      url: item.url,
+      snippet: item.snippet,
+    }));
+
+    res.json({ results });
+  } catch (err) {
+    console.error("SEARCH ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch from Bing API" });
+  }
 });
 
-const PORT = process.env.PORT || 8080;
+// Render will use this port
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port", PORT));
