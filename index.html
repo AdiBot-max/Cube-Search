@@ -22,6 +22,7 @@
 <div id="results"></div>
 
 <script>
+<script>
 async function startSearch() {
     const q = document.getElementById("searchBox").value.trim();
     if (!q) return;
@@ -32,7 +33,16 @@ async function startSearch() {
     const container = document.getElementById("results");
     container.innerHTML = "";
 
-    const results = data.webPages?.value || [];
+    const results = data.webPages?.value;
+
+    if (!results || results.length === 0) {
+        container.innerHTML = `
+            <div class="result">
+                <p>No results found. Your Bing/RapidAPI plan may return empty results.</p>
+            </div>
+        `;
+        return;
+    }
 
     results.forEach(r => {
         container.innerHTML += `
@@ -45,6 +55,9 @@ async function startSearch() {
 }
 </script>
 
+</script>
+
 </body>
 </html>
+
 
