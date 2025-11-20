@@ -1,14 +1,22 @@
 import express from "express";
 import fetch from "node-fetch";
-import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-// Your RapidAPI key
+// RapidAPI key
 const RAPID_KEY = "404e0293ecmshad6bea346293be7p171d07jsnabb538c1b944";
 
+// Serve index.html
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Proxy search endpoint
 app.get("/api/search", async (req, res) => {
     const q = req.query.q;
     if (!q) return res.status(400).json({ error: "Missing ?q=" });
@@ -31,10 +39,6 @@ app.get("/api/search", async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "Search failed" });
     }
-});
-
-app.get("/", (req, res) => {
-    res.send("Cube Search API is running.");
 });
 
 const PORT = process.env.PORT || 8080;
