@@ -1,61 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Cube Search</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-<style>
-    body { background:#000; color:#4af1ff; font-family:Arial; text-align:center; padding:40px; }
-    input { width:60%; padding:14px; font-size:18px; border-radius:10px; border:2px solid #4af1ff77; background:#0d151c; color:white; }
-    button { padding:14px 20px; font-size:18px; border:none; border-radius:10px; background:#4af1ff; cursor:pointer; }
-    .result { margin:20px auto; width:70%; background:#0d151c; padding:20px; border-radius:10px; border:1px solid #4af1ff33; }
-    a { color:#4af1ff; font-size:22px; text-decoration:none; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exa Web Search</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0e0e0e;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4fffb0;
+    }
+
+    #searchBox {
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      margin-bottom: 20px;
+    }
+
+    .result {
+      background: #1a1a1a;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 10px;
+      border-left: 5px solid #4fffb0;
+    }
+
+    .result h2 {
+      margin: 0 0 10px;
+      color: #4fffb0;
+    }
+
+    .result a {
+      color: #88c9ff;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .thumbnail {
+      max-width: 200px;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Cube Search</h1>
+  <h1>Exa Search Engine</h1>
 
-<input id="searchBox" placeholder="Search…">
-<button onclick="startSearch()">Search</button>
+  <input type="text" id="searchBox" placeholder="Search anything..." />
 
-<div id="results"></div>
+  <div id="results"></div>
 
-<script>
-async function startSearch() {
-    const q = document.getElementById("searchBox").value.trim();
-    if (!q) return;
+  <script>
+    const backend = "https://YOUR-RENDER-URL.onrender.com/search"; 
+    // Replace with your actual Render backend URL
 
-    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
+    document.getElementById("searchBox").addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") {
+        const query = e.target.value.trim();
+        if (!query) return;
 
-    const container = document.getElementById("results");
-    container.innerHTML = "";
+        document.getElementById("results").innerHTML = "<p>Searching...</p>";
 
-    const results = data.webPages?.value;
+        const res = await fetch(backend, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
+        });
 
-    if (!results || results.length === 0) {
-        container.innerHTML = `
-            <div class="result">
-                <p>No results found. Your Bing/RapidAPI plan may return empty results.</p>
-            </div>
-        `;
-        return;
-    }
+        const data = await res.json();
 
-    results.forEach(r => {
-        container.innerHTML += `
-            <div class="result">
-                <a href="${r.url}" target="_blank">${r.name}</a>
-                <p>${r.snippet}</p>
-            </div>
-        `;
+        const container = document.getElementById("results");
+        container.innerHTML = "";
+
+        if (!data.results || data.results.length === 0) {
+          container.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+
+        data.results.forEach(r => {
+          const box = document.createElement("div");
+          box.className = "result";
+
+          box.innerHTML = `
+            <h2>${r.title}</h2>
+            <a href="${r.url}" target="_blank">${r.url}</a>
+            <p>${r.snippet}</p>
+            ${r.image ? `<img class="thumbnail" src="${r.image}">` : ""}
+          `;
+
+          container.appendChild(box);
+        });
+      }
     });
-}
-</script>
+  </script>
 
 </body>
 </html>
-
-
-
