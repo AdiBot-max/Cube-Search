@@ -1,52 +1,76 @@
-const express = require("express");
-const fetch = require("node-fetch");
-const path = require("path");
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const app = express();
+app.use(express.json());
+app.use(cors());
 
-app.use(require("cors")());
-app.use(express.static(".")); // Serve everything in root
+const EXA_KEY = process.env.EXA_API_KEY;
+const PORT = process.env.PORT || 10000;
 
-// 🔑 Your RapidAPI key (keep private)
-const RAPID_KEY = "404e0293ecmshad6bea346293be7p171d07jsnabb538c1b944";
-
-// ✅ Root route → loads index.html
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// ✅ Search API route (Bing Web Search via RapidAPI)
-app.get("/api/search", async (req, res) => {
-  const q = req.query.q;
-  if (!q) return res.json({ error: "Missing ?q=" });
-
-  const url = "https://bing-web-search1.p.rapidapi.com/search";
-
-  const params = new URLSearchParams({
-    q,
-    mkt: "en-us",
-    safeSearch: "Off",
-    textFormat: "Raw",
-    freshness: "Day"
-  });
-
+// -------------------------
+//   MAIN SEARCH ENDPOINT
+// -------------------------
+app.post("/search", async (req, res) => {
   try {
-    const response = await fetch(`${url}?${params}`, {
-      method: "GET",
+    const query = req.body.query;
+    const num = req.body.numResults || 10;
+
+    if (!query) {
+      return res.status(400).json({
+        error: "Missing 'query' in request body"
+      });
+    }
+
+    const response = await fetch("https://api.exa.ai/search", {
+      method: "POST",
       headers: {
-        "x-rapidapi-key": RAPID_KEY,
-        "x-rapidapi-host": "bing-web-search1.p.rapidapi.com"
-      }
+        "x-api-key": EXA_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query,
+        numResults: num,
+        useAutoprompt: true
+      })
     });
 
-    const data = await response.json();
-    res.json(data);
+    const raw = await response.json();
+
+    const results = (raw.results || []).map(r => ({
+      title: r.title || "No Title",
+      url: r.url,
+      snippet: r.text || r.description || "",
+      image: r.images?.[0] || null
+    }));
+
+    return res.json({
+      success: true,
+      total: results.length,
+      results
+    });
 
   } catch (err) {
-    console.error("API Error:", err);
-    res.status(500).json({ error: "Failed to fetch search results" });
+    console.error(err);
+    res.status(500).json({
+      error: true,
+      message: err.message
+    });
   }
 });
 
-// Render uses PORT from env
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Cube Search backend running"));
+// -------------------------
+//   TEST ROUTE
+// -------------------------
+app.get("/", (req, res) => {
+  res.send("Exa Search API is running! 🚀");
+});
+
+// -------------------------
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
