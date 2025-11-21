@@ -3,57 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Cube Search</title>
 
+  <!-- ✅ Favicon -->
+  <link rel="icon" href="https://dashboard.exa.ai/images/favicon.png" />
+
   <style>
-    body {
-      background: #0d0d0d;
-      color: #fff;
-      font-family: Arial, sans-serif;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #eee;
+      font-family: "Inter", sans-serif;
       padding: 40px;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 42px;
+      background: linear-gradient(90deg, #4da6ff, #b86bff);
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 25px;
+      font-weight: 700;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 600px;
     }
 
     input {
-      width: 300px;
-      padding: 12px;
-      border-radius: 8px;
-      border: none;
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 2px solid #333;
+      background: #111;
+      color: #fff;
+      font-size: 16px;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #4da6ff;
       outline: none;
-      margin-bottom: 20px;
+      background: #141414;
     }
 
     button {
-      padding: 12px 20px;
+      padding: 14px 22px;
+      background: linear-gradient(90deg, #4da6ff, #b86bff);
       border: none;
-      background: #4b8bff;
-      color: white;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    button:hover {
+      opacity: 0.8;
     }
 
     #results {
-      margin-top: 30px;
-      text-align: left;
+      margin-top: 35px;
+      width: 100%;
       max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .item {
-      background: #1a1a1a;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 12px 0;
+      background: #121212;
+      padding: 22px;
+      border-radius: 14px;
+      border: 1px solid #222;
+      transition: 0.25s;
+    }
+    .item:hover {
+      border-color: #4da6ff;
+    }
+    .item h3 {
+      margin-bottom: 10px;
+      color: #fff;
+      font-size: 20px;
+    }
+    .item p {
+      color: #bbb;
+      margin-bottom: 12px;
+    }
+
+    .item a {
+      color: #4da6ff;
+      text-decoration: none;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
+
   <h1>Cube Search</h1>
 
-  <input id="query" placeholder="Search anything..." />
-  <button onclick="search()">Search</button>
+  <div class="search-box">
+    <input id="query" placeholder="Search anything..." />
+    <button onclick="search()">Go</button>
+  </div>
 
   <div id="results"></div>
 
@@ -61,7 +124,7 @@
     async function search() {
       const q = document.getElementById("query").value;
       const resBox = document.getElementById("results");
-      resBox.innerHTML = "Searching...";
+      resBox.innerHTML = "<p>Searching...</p>";
 
       const res = await fetch("/api/search?q=" + encodeURIComponent(q));
       const data = await res.json();
@@ -74,11 +137,12 @@
         el.innerHTML = `
           <h3>${item.title}</h3>
           <p>${item.text}</p>
-          <a href="${item.url}" target="_blank">Open</a>
+          <a href="${item.url}" target="_blank">Open result →</a>
         `;
         resBox.appendChild(el);
       });
     }
   </script>
+
 </body>
 </html>
