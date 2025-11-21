@@ -1,75 +1,44 @@
 import express from "express";
 import fetch from "node-fetch";
-import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
-import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
-app.use(express.json());
-app.use(cors());
+const PORT = process.env.PORT || 3000;
 
-const EXA_KEY = process.env.EXA_API_KEY;
-const PORT = process.env.PORT || 10000;
+// Serve static HTML
+app.use(express.static("./"));
 
-// -------------------------
-//   SERVE FRONTEND
-// -------------------------
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+app.get("/api/search", async (req, res) => {
+  const q = req.query.q;
+  if (!q) return res.json({ results: [] });
 
-// -------------------------
-//   SEARCH ENDPOINT
-// -------------------------
-app.post("/search", async (req, res) => {
+  const apiKey = process.env.EXA_API_KEY;
+
   try {
-    const query = req.body.query;
-    const num = req.body.numResults || 10;
-
-    if (!query) {
-      return res.status(400).json({ error: "Missing 'query'" });
-    }
-
     const response = await fetch("https://api.exa.ai/search", {
       method: "POST",
       headers: {
-        "x-api-key": EXA_KEY,
+        "x-api-key": apiKey,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        query,
-        numResults: num,
-        useAutoprompt: true
+        query: q,
+        numResults: 8
       })
     });
 
-    const raw = await response.json();
-
-    const results = (raw.results || []).map(r => ({
-      title: r.title || "No Title",
-      url: r.url,
-      snippet: r.text || "",
-      image: r.images?.[0] || null
-    }));
+    const data = await response.json();
 
     res.json({
-      success: true,
-      total: results.length,
-      results
+      results: data.results || []
     });
 
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+  } catch (err) {
+    res.json({ results: [], error: err.message });
   }
 });
 
-// -------------------------
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log("Server running on port", PORT));
