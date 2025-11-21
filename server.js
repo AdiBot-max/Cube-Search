@@ -2,8 +2,13 @@ import express from "express";
 import fetch from "node-fetch";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
@@ -13,7 +18,14 @@ const EXA_KEY = process.env.EXA_API_KEY;
 const PORT = process.env.PORT || 10000;
 
 // -------------------------
-//   MAIN SEARCH ENDPOINT
+//   SERVE FRONTEND
+// -------------------------
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// -------------------------
+//   SEARCH ENDPOINT
 // -------------------------
 app.post("/search", async (req, res) => {
   try {
@@ -21,9 +33,7 @@ app.post("/search", async (req, res) => {
     const num = req.body.numResults || 10;
 
     if (!query) {
-      return res.status(400).json({
-        error: "Missing 'query' in request body"
-      });
+      return res.status(400).json({ error: "Missing 'query'" });
     }
 
     const response = await fetch("https://api.exa.ai/search", {
@@ -44,30 +54,19 @@ app.post("/search", async (req, res) => {
     const results = (raw.results || []).map(r => ({
       title: r.title || "No Title",
       url: r.url,
-      snippet: r.text || r.description || "",
+      snippet: r.text || "",
       image: r.images?.[0] || null
     }));
 
-    return res.json({
+    res.json({
       success: true,
       total: results.length,
       results
     });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: true,
-      message: err.message
-    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
-});
-
-// -------------------------
-//   TEST ROUTE
-// -------------------------
-app.get("/", (req, res) => {
-  res.send("Exa Search API is running! 🚀");
 });
 
 // -------------------------
