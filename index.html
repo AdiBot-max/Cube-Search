@@ -36,9 +36,15 @@ body {
   color: #000;
   font-weight: bold;
   position: relative;
+  overflow: hidden;
 }
 .sidebar .icon:hover {
   background: #ddd;
+}
+.sidebar .icon img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
 }
 
 /* Context menu */
@@ -156,20 +162,42 @@ h1 {
 </div>
 
 <script>
-// Sidebar functionality
+// Sidebar functionality with favicons
 const icons = document.querySelectorAll(".sidebar .icon");
 const contextMenu = document.getElementById("contextMenu");
 let currentIcon = null;
 
+// Helper to get favicon URL
+function getFavicon(url) {
+  try {
+    const u = new URL(url);
+    return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;
+  } catch {
+    return null;
+  }
+}
+
+// Pin function: set URL and favicon
+function pinIcon(icon, url) {
+  icon.dataset.url = url;
+  const faviconUrl = getFavicon(url);
+  const img = new Image();
+  img.src = faviconUrl;
+  img.onload = () => {
+    icon.innerHTML = "";
+    icon.appendChild(img);
+  };
+  img.onerror = () => {
+    icon.innerHTML = "^-^";
+  };
+}
+
+// Left click: pin or open
 icons.forEach(icon => {
-  // Left click: pin or open URL in same tab
   icon.addEventListener("click", () => {
     if (!icon.dataset.url) {
       const url = prompt("Enter URL to pin:");
-      if (url) {
-        icon.dataset.url = url;
-        icon.textContent = url.replace(/^https?:\/\//, '').split('/')[0];
-      }
+      if (url) pinIcon(icon, url);
     } else {
       window.location.href = icon.dataset.url;
     }
@@ -191,23 +219,24 @@ document.getElementById("openBtn").addEventListener("click", () => {
   if (currentIcon && currentIcon.dataset.url) window.location.href = currentIcon.dataset.url;
   contextMenu.style.display = "none";
 });
+
 document.getElementById("editBtn").addEventListener("click", () => {
   if (currentIcon) {
     const newUrl = prompt("Enter new URL:", currentIcon.dataset.url);
-    if (newUrl) {
-      currentIcon.dataset.url = newUrl;
-      currentIcon.textContent = newUrl.replace(/^https?:\/\//, '').split('/')[0];
-    }
+    if (newUrl) pinIcon(currentIcon, newUrl);
   }
   contextMenu.style.display = "none";
 });
+
 document.getElementById("deleteBtn").addEventListener("click", () => {
   if (currentIcon) {
     currentIcon.dataset.url = "";
-    currentIcon.textContent = "+";
+    currentIcon.innerHTML = "+";
   }
   contextMenu.style.display = "none";
 });
+
+// Hide context menu on outside click
 document.addEventListener("click", e => {
   if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
 });
@@ -218,22 +247,25 @@ async function search() {
   const resBox = document.getElementById("results");
   resBox.innerHTML = "<p>Searching...</p>";
 
-  const res = await fetch("/api/search?q=" + encodeURIComponent(q));
-  const data = await res.json();
+  try {
+    const res = await fetch("/api/search?q=" + encodeURIComponent(q));
+    const data = await res.json();
 
-  resBox.innerHTML = "";
-  data.results.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "item";
-    el.innerHTML = `
-      <h3>${item.title}</h3>
-      <p>${item.text}</p>
-      <a href="${item.url}">Open result →</a>
-    `;
-    resBox.appendChild(el);
-  });
+    resBox.innerHTML = "";
+    data.results.forEach(item => {
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = `
+        <h3>${item.title}</h3>
+        <p>${item.text}</p>
+        <a href="${item.url}">Open result →</a>
+      `;
+      resBox.appendChild(el);
+    });
+  } catch {
+    resBox.innerHTML = "<p>Error fetching results.</p>";
+  }
 }
 </script>
-
 </body>
 </html>
