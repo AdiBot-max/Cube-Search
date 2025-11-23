@@ -121,7 +121,7 @@ body {
 }
 .item:hover { background: #2a2a2a; transform: translateY(-2px); }
 .item h3 { color: #fff; margin-bottom: 8px; }
-.item p { color: #bbb; margin-bottom: 8px; }
+.item p { color: #bbb; margin-bottom: 8px; word-break: break-word; }
 .item a { color: #4da6ff; text-decoration: none; font-weight: 600; }
 .item a:hover { text-decoration: underline; }
 
@@ -352,7 +352,7 @@ async function search(){
     data.results.forEach(item=>{
       const el=document.createElement("div");
       el.className="item";
-      el.innerHTML=`<h3>${item.title}</h3><p>${item.text}</p><a href="${item.url}">Open result →</a>`;
+      el.innerHTML=`<h3>${item.title}</h3><p>${item.text || item.url}</p><a href="${item.url}">Open result →</a>`;
       resBox.appendChild(el);
     });
   }catch{
