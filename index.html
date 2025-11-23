@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cube Search Floating Sidebar</title>
 <style>
-/* Body */
+/* BODY */
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
   height: 100vh;
-  background: #0a0a0a;
+  background: linear-gradient(135deg, #0a0a0a, #1c1c1c);
   color: #eee;
   display: flex;
   justify-content: center;
@@ -18,23 +18,27 @@ body {
   overflow-x: hidden;
 }
 
-/* Floating panel */
+/* FLOATING PANEL */
 .floating-panel {
   position: relative;
   width: 90%;
   max-width: 700px;
   background: #111;
-  border-radius: 30px;
+  border-radius: 40px;
   padding: 30px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 1;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.floating-panel:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.7);
 }
 
-/* Search Box */
+/* SEARCH BOX */
 .search-box {
   display: flex;
   gap: 10px;
@@ -49,11 +53,12 @@ body {
   background: #222;
   color: #fff;
   font-size: 16px;
-  transition: 0.2s;
+  transition: 0.3s;
 }
 .search-box input:focus {
   border-color: #4da6ff;
   outline: none;
+  background: #1a1a1a;
 }
 .search-box button {
   padding: 14px 22px;
@@ -63,13 +68,18 @@ body {
   cursor: pointer;
   color: #fff;
   font-weight: 600;
-  transition: 0.2s;
+  transition: all 0.3s ease;
 }
 .search-box button:hover {
-  opacity: 0.85;
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+}
+.search-box button:active {
+  transform: translateY(1px);
+  filter: brightness(0.9);
 }
 
-/* Search results modal */
+/* SEARCH RESULTS MODAL */
 #resultsModal {
   position: fixed;
   top: 50%;
@@ -77,13 +87,13 @@ body {
   transform: translate(-50%, -50%) scale(0);
   background: #111;
   color: #eee;
-  border-radius: 20px;
+  border-radius: 25px;
   padding: 20px;
   width: 90%;
   max-width: 700px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+  box-shadow: 0 15px 50px rgba(0,0,0,0.7);
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
   z-index: 10;
@@ -96,20 +106,26 @@ body {
   align-self: flex-end;
   cursor: pointer;
   font-weight: bold;
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 20px;
+  margin-bottom: 15px;
+  transition: color 0.2s;
 }
+#resultsModal .closeBtn:hover { color: #ff4d4d; }
 .item {
   background: #222;
-  padding: 15px;
-  border-radius: 14px;
+  padding: 18px;
+  border-radius: 20px;
   margin-bottom: 12px;
+  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
-.item h3 { color: #fff; margin-bottom: 6px; }
-.item p { color: #bbb; margin-bottom: 6px; }
+.item:hover { background: #2a2a2a; transform: translateY(-2px); }
+.item h3 { color: #fff; margin-bottom: 8px; }
+.item p { color: #bbb; margin-bottom: 8px; }
 .item a { color: #4da6ff; text-decoration: none; font-weight: 600; }
+.item a:hover { text-decoration: underline; }
 
-/* Sidebar */
+/* SIDEBAR */
 .sidebar {
   position: fixed;
   left: 0;
@@ -138,24 +154,48 @@ body {
   color: #000;
   font-weight: bold;
   overflow: hidden;
-  transition: 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
-.sidebar .icon:hover { background: #ddd; }
+.sidebar .icon:hover { transform: scale(1.1); box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+.sidebar .icon:active { transform: scale(0.95); }
 .sidebar .icon img { width: 32px; height: 32px; border-radius: 50%; }
 
-/* Mobile overlay */
+/* CONTEXT MENU */
+.context-menu {
+  position: fixed;
+  background: #222;
+  color: #fff;
+  border-radius: 12px;
+  display: none;
+  flex-direction: column;
+  min-width: 140px;
+  z-index: 1000;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  transition: opacity 0.2s;
+}
+.context-menu button {
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.context-menu button:hover {
+  background: #444;
+  transform: translateX(3px);
+}
+
+/* MOBILE */
 .overlay {
   display: none;
   position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
+  top:0; left:0; width:100%; height:100%;
   background: rgba(0,0,0,0.7);
   z-index:4;
 }
-
-/* Mobile hamburger */
 .hamburger {
   display: none;
   position: fixed;
@@ -168,15 +208,19 @@ body {
   cursor: pointer;
   z-index:6;
 }
-.hamburger div { height: 5px; background: #fff; border-radius: 5px; }
+.hamburger div { height: 5px; background: #fff; border-radius: 5px; transition: 0.3s; }
+.hamburger:hover div { background: #4da6ff; }
 
-/* Mobile responsive */
 @media (max-width: 768px) {
-  .sidebar { top:0; left:0; width:70%; height:100%; transform: translateX(-100%); border-radius:0; flex-direction:column; padding-top:60px; }
+  .sidebar {
+    top:0; left:0; width:70%; height:100%;
+    transform: translateX(-100%); border-radius:0;
+    padding-top:60px; flex-direction:column;
+  }
   .sidebar.collapsed { transform: translateX(0); }
   .hamburger { display:flex; }
   .overlay.show { display:block; }
-  .floating-panel { width: 95%; max-width:none; }
+  .floating-panel { width: 95%; }
 }
 </style>
 </head>
@@ -281,12 +325,12 @@ document.addEventListener("click",e=>{if(!contextMenu.contains(e.target)) contex
 // Custom popup
 function openPopup(icon,message,defaultVal=""){
   const inputModal=document.createElement("div");
-  Object.assign(inputModal.style,{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"#222",padding:"20px",borderRadius:"15px",zIndex:"20",display:"flex",flexDirection:"column",gap:"10px",minWidth:"250px"});
+  Object.assign(inputModal.style,{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"#222",padding:"20px",borderRadius:"15px",zIndex:"20",display:"flex",flexDirection:"column",gap:"10px",minWidth:"250px",boxShadow:"0 8px 25px rgba(0,0,0,0.6)"});
   const msg=document.createElement("div"); msg.textContent=message; msg.style.color="#fff"; inputModal.appendChild(msg);
   const input=document.createElement("input"); input.value=defaultVal; Object.assign(input.style,{padding:"8px",borderRadius:"8px",border:"1px solid #555",background:"#111",color:"#fff"}); inputModal.appendChild(input);
   const btnDiv=document.createElement("div"); btnDiv.style.display="flex"; btnDiv.style.justifyContent="flex-end"; btnDiv.style.gap="10px";
-  const okBtn=document.createElement("button"); okBtn.textContent="OK"; okBtn.style.padding="5px 12px"; okBtn.style.cursor="pointer";
-  const cancelBtn=document.createElement("button"); cancelBtn.textContent="Cancel"; cancelBtn.style.padding="5px 12px"; cancelBtn.style.cursor="pointer";
+  const okBtn=document.createElement("button"); okBtn.textContent="OK"; Object.assign(okBtn.style,{padding:"5px 12px",cursor:"pointer",borderRadius:"6px",background:"#4da6ff",border:"none",color:"#fff"});
+  const cancelBtn=document.createElement("button"); cancelBtn.textContent="Cancel"; Object.assign(cancelBtn.style,{padding:"5px 12px",cursor:"pointer",borderRadius:"6px",background:"#bbb",border:"none",color:"#000"});
   btnDiv.appendChild(cancelBtn); btnDiv.appendChild(okBtn); inputModal.appendChild(btnDiv);
   document.body.appendChild(inputModal);
   okBtn.onclick=()=>{pinIcon(icon,input.value);document.body.removeChild(inputModal);}
