@@ -1,107 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your App</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cube Search with Sidebar</title>
 <style>
 body {
-color: #000;
-background: linear-gradient(90deg, #fff, #c9d5ff);
-align-items: center;
-justify-content: center;
-margin-top: 0;
-display: flex;
-flex-direction: column;
-height: 100vh;
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  display: flex;
+  height: 100vh;
+  background: #0a0a0a;
+  color: #eee;
 }
-.btn {
-background: linear-gradient(135deg, #000, #333);
-color: #fff;
-height: 100px;
-width: 200px;
-border-radius: 100px;
-position: relative;
-transition: 1s ease;
-}
-.btn:hover {
-background: linear-gradient(120deg, #000, #333);
-height: 125px;
-width: 225px;
-border-radius: 40px;
-transition: 1s ease;
-}
-.btn:active {
-background: linear-gradient(100deg, #000, #333);
-border-radius: 35px;
-height: 115px;
-width: 215px;
-transition: 0.3s ease;
-}
+
+/* Sidebar */
 .sidebar {
-background: linear-gradient(120deg, #fff, #bfc4ff);
-height: 300px;
-width: 100px;
-border-radius: 50px;
-color: #000;
-left: 150px;
-position: fixed;
-align-items: center;
-justify-content: center;
-display: flex;
-flex-direction: column;
-row-gap: 25px;
+  width: 100px;
+  background: linear-gradient(120deg, #fff, #bfc4ff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 20px;
 }
-.icon {
-background: #fff;
-color: #000;
-height: 75px;
-width: 75px;
-border-radius: 50%;
+.sidebar .icon {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #000;
+  font-weight: bold;
+  position: relative;
+}
+.sidebar .icon:hover {
+  background: #ddd;
 }
 
-    .search-box {
-      display: flex;
-      align-items: center;
-      background: #fff;
-      border-radius: 30px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 10px 15px;
-      width: 350px;
-    }
+/* Context menu */
+.context-menu {
+  position: absolute;
+  background: #222;
+  color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  display: none;
+  flex-direction: column;
+  min-width: 120px;
+  z-index: 1000;
+}
+.context-menu button {
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.context-menu button:hover {
+  background: #444;
+}
 
-    .search-box input {
-      border: none;
-      outline: none;
-      font-size: 16px;
-      flex: 1;
-      padding: 8px;
-    }
+/* Main content */
+.main {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-    .favicon {
-      width: 24px;
-      height: 24px;
-      border-radius: 5px;
-      margin-right: 10px;
-      background-color: #eee;
-    }
+h1 {
+  font-size: 42px;
+  background: linear-gradient(90deg, #4da6ff, #b86bff);
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 25px;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+.search-box input {
+  flex: 1;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid #333;
+  background: #111;
+  color: #fff;
+  font-size: 16px;
+}
+.search-box input:focus {
+  border-color: #4da6ff;
+  outline: none;
+}
+.search-box button {
+  padding: 14px 22px;
+  background: linear-gradient(90deg, #4da6ff, #b86bff);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+}
+
+#results {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.item {
+  background: #121212;
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid #222;
+}
+.item h3 { color: #fff; margin-bottom: 10px; }
+.item p { color: #bbb; margin-bottom: 12px; }
+.item a { color: #4da6ff; text-decoration: none; font-weight: 600; }
 </style>
 </head>
 <body>
-  <h1>Click anywhere to go Fullscreen</h1>
-<button class="btn"></button>
-<div class="sidebar"><div class="icon 1"></div><div class="icon 2"></div>
-<a href="https://www.youtube.com">
-<div class="icon 3" alt="youtube">
-</div>
-</a>
-</div>
-<div class="search-box">
-    <img class="favicon" id="favicon" src="https://www.google.com/s2/favicons?sz=64&domain=google.com" alt="favicon">
-    <input type="text" id="urlInput" placeholder="Enter website URL (e.g. https://youtube.com)">
-  </div>
 
-  <!-- Link your main.js here -->
-  <script src="main.js></script>
+<div class="sidebar">
+  <div class="icon" data-url="" title="Click to pin">+</div>
+  <div class="icon" data-url="" title="Click to pin">+</div>
+  <div class="icon" data-url="" title="Click to pin">+</div>
+  <div class="icon" data-url="" title="Click to pin">+</div>
+</div>
+
+<div class="main">
+  <h1>Cube Search</h1>
+  <div class="search-box">
+    <input id="query" placeholder="Search anything..." />
+    <button onclick="search()">Go</button>
+  </div>
+  <div id="results"></div>
+</div>
+
+<div class="context-menu" id="contextMenu">
+  <button id="openBtn">Open</button>
+  <button id="editBtn">Change URL</button>
+  <button id="deleteBtn">Delete Pin</button>
+</div>
+
+<script>
+// Sidebar functionality
+const icons = document.querySelectorAll(".sidebar .icon");
+const contextMenu = document.getElementById("contextMenu");
+let currentIcon = null;
+
+icons.forEach(icon => {
+  // Left click: pin or open URL in same tab
+  icon.addEventListener("click", () => {
+    if (!icon.dataset.url) {
+      const url = prompt("Enter URL to pin:");
+      if (url) {
+        icon.dataset.url = url;
+        icon.textContent = url.replace(/^https?:\/\//, '').split('/')[0];
+      }
+    } else {
+      window.location.href = icon.dataset.url;
+    }
+  });
+
+  // Right click: context menu
+  icon.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    if (!icon.dataset.url) return;
+    currentIcon = icon;
+    contextMenu.style.top = e.clientY + "px";
+    contextMenu.style.left = e.clientX + "px";
+    contextMenu.style.display = "flex";
+  });
+});
+
+// Context menu actions
+document.getElementById("openBtn").addEventListener("click", () => {
+  if (currentIcon && currentIcon.dataset.url) window.location.href = currentIcon.dataset.url;
+  contextMenu.style.display = "none";
+});
+document.getElementById("editBtn").addEventListener("click", () => {
+  if (currentIcon) {
+    const newUrl = prompt("Enter new URL:", currentIcon.dataset.url);
+    if (newUrl) {
+      currentIcon.dataset.url = newUrl;
+      currentIcon.textContent = newUrl.replace(/^https?:\/\//, '').split('/')[0];
+    }
+  }
+  contextMenu.style.display = "none";
+});
+document.getElementById("deleteBtn").addEventListener("click", () => {
+  if (currentIcon) {
+    currentIcon.dataset.url = "";
+    currentIcon.textContent = "+";
+  }
+  contextMenu.style.display = "none";
+});
+document.addEventListener("click", e => {
+  if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
+});
+
+// Cube Search functionality
+async function search() {
+  const q = document.getElementById("query").value;
+  const resBox = document.getElementById("results");
+  resBox.innerHTML = "<p>Searching...</p>";
+
+  const res = await fetch("/api/search?q=" + encodeURIComponent(q));
+  const data = await res.json();
+
+  resBox.innerHTML = "";
+  data.results.forEach(item => {
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      <h3>${item.title}</h3>
+      <p>${item.text}</p>
+      <a href="${item.url}">Open result →</a>
+    `;
+    resBox.appendChild(el);
+  });
+}
+</script>
+
 </body>
 </html>
