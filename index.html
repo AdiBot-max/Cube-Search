@@ -3,104 +3,49 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cube Search with Sidebar</title>
+<title>Cube Search Floating</title>
 <style>
+/* Body */
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
-  display: flex;
   height: 100vh;
   background: #0a0a0a;
   color: #eee;
-}
-
-/* Sidebar */
-.sidebar {
-  width: 100px;
-  background: linear-gradient(120deg, #fff, #bfc4ff);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 0;
-  gap: 20px;
-}
-.sidebar .icon {
-  width: 60px;
-  height: 60px;
-  background: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: #000;
-  font-weight: bold;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* Floating container */
+.floating-panel {
   position: relative;
-  overflow: hidden;
-}
-.sidebar .icon:hover {
-  background: #ddd;
-}
-.sidebar .icon img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-/* Context menu */
-.context-menu {
-  position: absolute;
-  background: #222;
-  color: #fff;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  display: none;
-  flex-direction: column;
-  min-width: 120px;
-  z-index: 1000;
-}
-.context-menu button {
-  background: none;
-  border: none;
-  color: #fff;
-  padding: 8px 12px;
-  text-align: left;
-  cursor: pointer;
-}
-.context-menu button:hover {
-  background: #444;
-}
-
-/* Main content */
-.main {
-  flex: 1;
-  padding: 40px;
+  width: 90%;
+  max-width: 700px;
+  background: #111;
+  border-radius: 30px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 1;
 }
 
-h1 {
-  font-size: 42px;
-  background: linear-gradient(90deg, #4da6ff, #b86bff);
-  -webkit-background-clip: text;
-  color: transparent;
-  margin-bottom: 25px;
-}
-
+/* Search Box */
 .search-box {
   display: flex;
   gap: 10px;
   width: 100%;
-  max-width: 600px;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 .search-box input {
   flex: 1;
   padding: 14px 18px;
   border-radius: 12px;
   border: 2px solid #333;
-  background: #111;
+  background: #222;
   color: #fff;
   font-size: 16px;
 }
@@ -118,14 +63,13 @@ h1 {
   font-weight: 600;
 }
 
+/* Search Results */
 #results {
   width: 100%;
-  max-width: 700px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-
 .item {
   background: #121212;
   padding: 22px;
@@ -135,18 +79,127 @@ h1 {
 .item h3 { color: #fff; margin-bottom: 10px; }
 .item p { color: #bbb; margin-bottom: 12px; }
 .item a { color: #4da6ff; text-decoration: none; font-weight: 600; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100px;
+  background: linear-gradient(120deg, #fff, #bfc4ff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 20px;
+  border-radius: 0 30px 30px 0;
+  transition: transform 0.3s ease;
+  z-index: 5;
+}
+.sidebar.collapsed {
+  transform: translate(-100%, -50%);
+}
+.sidebar .icon {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #000;
+  font-weight: bold;
+  overflow: hidden;
+}
+.sidebar .icon img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+/* Mobile overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.7);
+  z-index:4;
+}
+
+/* Mobile hamburger */
+.hamburger {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 30px;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index:6;
+}
+.hamburger div {
+  height: 5px;
+  background: #fff;
+  border-radius: 5px;
+}
+
+/* Responsive for mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    top: 0;
+    left: 0;
+    width: 70%;
+    height: 100%;
+    transform: translateX(-100%);
+    border-radius: 0;
+    flex-direction: column;
+    padding-top: 60px;
+  }
+  .sidebar.collapsed {
+    transform: translateX(0);
+  }
+  .hamburger {
+    display: flex;
+  }
+  .floating-panel {
+    width: 95%;
+    max-width: none;
+  }
+  .overlay.show {
+    display: block;
+  }
+}
 </style>
 </head>
 <body>
 
-<div class="sidebar">
+<!-- Mobile hamburger -->
+<div class="hamburger" id="hamburger">
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
+
+<!-- Mobile overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Sidebar -->
+<div class="sidebar collapsed" id="sidebar">
   <div class="icon" data-url="" title="Click to pin">+</div>
   <div class="icon" data-url="" title="Click to pin">+</div>
   <div class="icon" data-url="" title="Click to pin">+</div>
   <div class="icon" data-url="" title="Click to pin">+</div>
 </div>
 
-<div class="main">
+<!-- Floating main panel -->
+<div class="floating-panel">
   <h1>Cube Search</h1>
   <div class="search-box">
     <input id="query" placeholder="Search anything..." />
@@ -155,6 +208,7 @@ h1 {
   <div id="results"></div>
 </div>
 
+<!-- Context Menu -->
 <div class="context-menu" id="contextMenu">
   <button id="openBtn">Open</button>
   <button id="editBtn">Change URL</button>
@@ -165,7 +219,20 @@ h1 {
 // Sidebar functionality with favicons
 const icons = document.querySelectorAll(".sidebar .icon");
 const contextMenu = document.getElementById("contextMenu");
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+const hamburger = document.getElementById("hamburger");
 let currentIcon = null;
+
+// Hamburger toggle
+hamburger.addEventListener("click", () => {
+  sidebar.classList.toggle("collapsed");
+  overlay.classList.toggle("show");
+});
+overlay.addEventListener("click", () => {
+  sidebar.classList.add("collapsed");
+  overlay.classList.remove("show");
+});
 
 // Helper to get favicon URL
 function getFavicon(url) {
@@ -177,7 +244,7 @@ function getFavicon(url) {
   }
 }
 
-// Pin function: set URL and favicon
+// Pin function
 function pinIcon(icon, url) {
   icon.dataset.url = url;
   const faviconUrl = getFavicon(url);
@@ -192,7 +259,7 @@ function pinIcon(icon, url) {
   };
 }
 
-// Left click: pin or open
+// Left click / Right click
 icons.forEach(icon => {
   icon.addEventListener("click", () => {
     if (!icon.dataset.url) {
@@ -203,7 +270,6 @@ icons.forEach(icon => {
     }
   });
 
-  // Right click: context menu
   icon.addEventListener("contextmenu", e => {
     e.preventDefault();
     if (!icon.dataset.url) return;
@@ -219,7 +285,6 @@ document.getElementById("openBtn").addEventListener("click", () => {
   if (currentIcon && currentIcon.dataset.url) window.location.href = currentIcon.dataset.url;
   contextMenu.style.display = "none";
 });
-
 document.getElementById("editBtn").addEventListener("click", () => {
   if (currentIcon) {
     const newUrl = prompt("Enter new URL:", currentIcon.dataset.url);
@@ -227,7 +292,6 @@ document.getElementById("editBtn").addEventListener("click", () => {
   }
   contextMenu.style.display = "none";
 });
-
 document.getElementById("deleteBtn").addEventListener("click", () => {
   if (currentIcon) {
     currentIcon.dataset.url = "";
@@ -235,8 +299,6 @@ document.getElementById("deleteBtn").addEventListener("click", () => {
   }
   contextMenu.style.display = "none";
 });
-
-// Hide context menu on outside click
 document.addEventListener("click", e => {
   if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
 });
