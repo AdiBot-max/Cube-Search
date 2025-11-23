@@ -48,9 +48,7 @@ h1 {
   text-align: center;
   transition: 0.3s;
 }
-h1:hover {
-  transform: scale(1.05);
-}
+h1:hover { transform: scale(1.05); }
 
 /* SEARCH BOX */
 .search-box {
@@ -112,11 +110,15 @@ h1:hover {
   transition: transform 0.3s ease, opacity 0.3s ease;
   opacity: 0;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
 }
 #resultsModal.show {
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
 }
+
+/* CLOSE BUTTON */
 #resultsModal .closeBtn {
   align-self: flex-end;
   cursor: pointer;
@@ -124,11 +126,15 @@ h1:hover {
   font-size: 22px;
   margin-bottom: 15px;
   transition: color 0.2s, transform 0.2s;
+  position: sticky;
+  top: 0;
 }
 #resultsModal .closeBtn:hover {
   color: #ff4d4d;
   transform: scale(1.2);
 }
+
+/* SEARCH CARDS */
 .item {
   background: #222;
   padding: 18px;
@@ -136,6 +142,7 @@ h1:hover {
   margin-bottom: 12px;
   transition: 0.3s;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  cursor: pointer;
 }
 .item:hover { 
   background: #2a2a2a; 
@@ -295,48 +302,27 @@ const overlay = document.getElementById("overlay");
 const hamburger = document.getElementById("hamburger");
 let currentIcon = null;
 
-// Load pinned URLs from localStorage
+// Load pinned URLs
 function loadSidebar() {
   const saved = JSON.parse(localStorage.getItem("sidebarPins") || "[]");
-  icons.forEach((icon, index) => {
-    const url = saved[index] || "";
-    if(url) pinIcon(icon, url);
+  icons.forEach((icon,index)=>{
+    const url=saved[index]||"";
+    if(url) pinIcon(icon,url);
   });
 }
-
-// Save current sidebar state
+// Save sidebar
 function saveSidebar() {
-  const urls = Array.from(icons).map(icon => icon.dataset.url || "");
-  localStorage.setItem("sidebarPins", JSON.stringify(urls));
+  const urls=Array.from(icons).map(icon=>icon.dataset.url||"");
+  localStorage.setItem("sidebarPins",JSON.stringify(urls));
 }
-
 // Hamburger toggle
-hamburger.addEventListener("click", () => {
-  sidebar.classList.toggle("collapsed");
-  overlay.classList.toggle("show");
-});
-overlay.addEventListener("click", () => {
-  sidebar.classList.add("collapsed");
-  overlay.classList.remove("show");
-});
-if(window.innerWidth > 768) sidebar.classList.remove("collapsed");
-
+hamburger.addEventListener("click",()=>{sidebar.classList.toggle("collapsed"); overlay.classList.toggle("show");});
+overlay.addEventListener("click",()=>{sidebar.classList.add("collapsed"); overlay.classList.remove("show");});
+if(window.innerWidth>768) sidebar.classList.remove("collapsed");
 // Favicon helper
-function getFavicon(url){
-  try{const u=new URL(url); return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;}
-  catch{return null;}
-}
-
+function getFavicon(url){try{const u=new URL(url);return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;}catch{return null;}}
 // Pin icon
-function pinIcon(icon,url){
-  icon.dataset.url=url;
-  const faviconUrl=getFavicon(url);
-  const img=new Image();
-  img.src=faviconUrl;
-  img.onload=()=>{icon.innerHTML=""; icon.appendChild(img); saveSidebar();}
-  img.onerror=()=>{icon.innerHTML="^-^"; saveSidebar();}
-}
-
+function pinIcon(icon,url){icon.dataset.url=url; const faviconUrl=getFavicon(url); const img=new Image(); img.src=faviconUrl; img.onload=()=>{icon.innerHTML=""; icon.appendChild(img); saveSidebar();}; img.onerror=()=>{icon.innerHTML="^-^"; saveSidebar();}}
 // Left/right click
 icons.forEach(icon=>{
   icon.addEventListener("click",()=>{
@@ -352,7 +338,6 @@ icons.forEach(icon=>{
     contextMenu.style.display="flex";
   });
 });
-
 // Context menu actions
 document.getElementById("openBtn").addEventListener("click",()=>{if(currentIcon&&currentIcon.dataset.url) window.location.href=currentIcon.dataset.url; contextMenu.style.display="none";});
 document.getElementById("editBtn").addEventListener("click",()=>{if(currentIcon) openPopup(currentIcon,"Enter new URL:",currentIcon.dataset.url); contextMenu.style.display="none";});
