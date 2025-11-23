@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cube Search Floating with Popups</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cube Search Floating Sidebar</title>
 <style>
 /* Body */
 body {
@@ -126,9 +126,6 @@ body {
   transition: transform 0.3s ease;
   z-index: 5;
 }
-.sidebar.collapsed {
-  transform: translate(-100%, -50%);
-}
 .sidebar .icon {
   width: 60px;
   height: 60px;
@@ -143,14 +140,8 @@ body {
   overflow: hidden;
   transition: 0.2s;
 }
-.sidebar .icon:hover {
-  background: #ddd;
-}
-.sidebar .icon img {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
+.sidebar .icon:hover { background: #ddd; }
+.sidebar .icon img { width: 32px; height: 32px; border-radius: 50%; }
 
 /* Mobile overlay */
 .overlay {
@@ -177,66 +168,44 @@ body {
   cursor: pointer;
   z-index:6;
 }
-.hamburger div {
-  height: 5px;
-  background: #fff;
-  border-radius: 5px;
-}
+.hamburger div { height: 5px; background: #fff; border-radius: 5px; }
 
-/* Responsive */
+/* Mobile responsive */
 @media (max-width: 768px) {
-  .sidebar {
-    top: 0;
-    left: 0;
-    width: 70%;
-    height: 100%;
-    transform: translateX(-100%);
-    border-radius: 0;
-    flex-direction: column;
-    padding-top: 60px;
-  }
-  .sidebar.collapsed {
-    transform: translateX(0);
-  }
-  .hamburger {
-    display: flex;
-  }
-  .overlay.show {
-    display: block;
-  }
+  .sidebar { top:0; left:0; width:70%; height:100%; transform: translateX(-100%); border-radius:0; flex-direction:column; padding-top:60px; }
+  .sidebar.collapsed { transform: translateX(0); }
+  .hamburger { display:flex; }
+  .overlay.show { display:block; }
+  .floating-panel { width: 95%; max-width:none; }
 }
 </style>
 </head>
 <body>
 
-<!-- Mobile hamburger -->
-<div class="hamburger" id="hamburger">
-  <div></div>
-  <div></div>
-  <div></div>
-</div>
+<!-- Hamburger -->
+<div class="hamburger" id="hamburger"><div></div><div></div><div></div></div>
 
-<!-- Mobile overlay -->
+<!-- Overlay -->
 <div class="overlay" id="overlay"></div>
 
 <!-- Sidebar -->
-<div class="sidebar collapsed" id="sidebar">
+<div class="sidebar" id="sidebar">
   <div class="icon" data-url="" title="Click to pin">+</div>
   <div class="icon" data-url="" title="Click to pin">+</div>
   <div class="icon" data-url="" title="Click to pin">+</div>
   <div class="icon" data-url="" title="Click to pin">+</div>
 </div>
 
-<!-- Floating main panel -->
+<!-- Floating panel -->
 <div class="floating-panel">
   <h1>Cube Search</h1>
   <div class="search-box">
-    <input id="query" placeholder="Search anything..." />
+    <input id="query" placeholder="Search anything...">
     <button onclick="search()">Go</button>
   </div>
 </div>
 
-<!-- Search results modal -->
+<!-- Search modal -->
 <div id="resultsModal">
   <div class="closeBtn" id="closeResults">✖</div>
   <div id="results"></div>
@@ -250,7 +219,7 @@ body {
 </div>
 
 <script>
-// Sidebar with favicons
+// Sidebar and popups
 const icons = document.querySelectorAll(".sidebar .icon");
 const contextMenu = document.getElementById("contextMenu");
 const sidebar = document.getElementById("sidebar");
@@ -258,7 +227,7 @@ const overlay = document.getElementById("overlay");
 const hamburger = document.getElementById("hamburger");
 let currentIcon = null;
 
-// Hamburger toggle
+// Hamburger toggle for mobile
 hamburger.addEventListener("click", () => {
   sidebar.classList.toggle("collapsed");
   overlay.classList.toggle("show");
@@ -268,125 +237,82 @@ overlay.addEventListener("click", () => {
   overlay.classList.remove("show");
 });
 
-// Get favicon
-function getFavicon(url) {
-  try {
-    const u = new URL(url);
-    return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;
-  } catch {
-    return null;
-  }
+// Show sidebar on desktop by default
+if(window.innerWidth > 768) sidebar.classList.remove("collapsed");
+
+// Favicon helper
+function getFavicon(url){
+  try{const u=new URL(url); return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;}
+  catch{return null;}
 }
 
 // Pin icon
-function pinIcon(icon, url) {
-  icon.dataset.url = url;
-  const faviconUrl = getFavicon(url);
-  const img = new Image();
-  img.src = faviconUrl;
-  img.onload = () => { icon.innerHTML = ""; icon.appendChild(img); };
-  img.onerror = () => { icon.innerHTML = "^-^"; };
+function pinIcon(icon,url){
+  icon.dataset.url=url;
+  const faviconUrl=getFavicon(url);
+  const img=new Image();
+  img.src=faviconUrl;
+  img.onload=()=>{icon.innerHTML="";icon.appendChild(img);}
+  img.onerror=()=>{icon.innerHTML="^-^";}
 }
 
-// Click / Right-click
-icons.forEach(icon => {
-  icon.addEventListener("click", () => {
-    if (!icon.dataset.url) openPopup(icon, "Enter URL to pin:");
-    else window.location.href = icon.dataset.url;
+// Left/right click
+icons.forEach(icon=>{
+  icon.addEventListener("click",()=>{
+    if(!icon.dataset.url) openPopup(icon,"Enter URL to pin:");
+    else window.location.href=icon.dataset.url;
   });
-  icon.addEventListener("contextmenu", e => {
+  icon.addEventListener("contextmenu",e=>{
     e.preventDefault();
-    if (!icon.dataset.url) return;
-    currentIcon = icon;
-    contextMenu.style.top = e.clientY + "px";
-    contextMenu.style.left = e.clientX + "px";
-    contextMenu.style.display = "flex";
+    if(!icon.dataset.url) return;
+    currentIcon=icon;
+    contextMenu.style.top=e.clientY+"px";
+    contextMenu.style.left=e.clientX+"px";
+    contextMenu.style.display="flex";
   });
 });
 
 // Context menu actions
-document.getElementById("openBtn").addEventListener("click", () => {
-  if (currentIcon && currentIcon.dataset.url) window.location.href = currentIcon.dataset.url;
-  contextMenu.style.display = "none";
-});
-document.getElementById("editBtn").addEventListener("click", () => {
-  if (currentIcon) openPopup(currentIcon, "Enter new URL:", currentIcon.dataset.url);
-  contextMenu.style.display = "none";
-});
-document.getElementById("deleteBtn").addEventListener("click", () => {
-  if (currentIcon) { currentIcon.dataset.url = ""; currentIcon.innerHTML = "+"; }
-  contextMenu.style.display = "none";
-});
-document.addEventListener("click", e => { if (!contextMenu.contains(e.target)) contextMenu.style.display = "none"; });
+document.getElementById("openBtn").addEventListener("click",()=>{if(currentIcon&&currentIcon.dataset.url) window.location.href=currentIcon.dataset.url; contextMenu.style.display="none";});
+document.getElementById("editBtn").addEventListener("click",()=>{if(currentIcon) openPopup(currentIcon,"Enter new URL:",currentIcon.dataset.url); contextMenu.style.display="none";});
+document.getElementById("deleteBtn").addEventListener("click",()=>{if(currentIcon){currentIcon.dataset.url=""; currentIcon.innerHTML="+";} contextMenu.style.display="none";});
+document.addEventListener("click",e=>{if(!contextMenu.contains(e.target)) contextMenu.style.display="none";});
 
-// Custom popup for input
-function openPopup(icon, message, defaultVal="") {
-  const inputModal = document.createElement("div");
-  inputModal.style.position="fixed";
-  inputModal.style.top="50%";
-  inputModal.style.left="50%";
-  inputModal.style.transform="translate(-50%,-50%)";
-  inputModal.style.background="#222";
-  inputModal.style.padding="20px";
-  inputModal.style.borderRadius="15px";
-  inputModal.style.zIndex="20";
-  inputModal.style.display="flex";
-  inputModal.style.flexDirection="column";
-  inputModal.style.gap="10px";
-  inputModal.style.minWidth="250px";
-  
-  const msg = document.createElement("div");
-  msg.textContent = message;
-  msg.style.color="#fff";
-  inputModal.appendChild(msg);
-  
-  const input = document.createElement("input");
-  input.value = defaultVal;
-  input.style.padding="8px";
-  input.style.borderRadius="8px";
-  input.style.border="1px solid #555";
-  input.style.background="#111";
-  input.style.color="#fff";
-  inputModal.appendChild(input);
-  
-  const btnDiv = document.createElement("div");
-  btnDiv.style.display="flex"; btnDiv.style.justifyContent="flex-end"; btnDiv.style.gap="10px";
-  const okBtn = document.createElement("button");
-  okBtn.textContent="OK"; okBtn.style.padding="5px 12px"; okBtn.style.cursor="pointer";
-  const cancelBtn = document.createElement("button");
-  cancelBtn.textContent="Cancel"; cancelBtn.style.padding="5px 12px"; cancelBtn.style.cursor="pointer";
-  btnDiv.appendChild(cancelBtn); btnDiv.appendChild(okBtn);
-  inputModal.appendChild(btnDiv);
-  
+// Custom popup
+function openPopup(icon,message,defaultVal=""){
+  const inputModal=document.createElement("div");
+  Object.assign(inputModal.style,{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",background:"#222",padding:"20px",borderRadius:"15px",zIndex:"20",display:"flex",flexDirection:"column",gap:"10px",minWidth:"250px"});
+  const msg=document.createElement("div"); msg.textContent=message; msg.style.color="#fff"; inputModal.appendChild(msg);
+  const input=document.createElement("input"); input.value=defaultVal; Object.assign(input.style,{padding:"8px",borderRadius:"8px",border:"1px solid #555",background:"#111",color:"#fff"}); inputModal.appendChild(input);
+  const btnDiv=document.createElement("div"); btnDiv.style.display="flex"; btnDiv.style.justifyContent="flex-end"; btnDiv.style.gap="10px";
+  const okBtn=document.createElement("button"); okBtn.textContent="OK"; okBtn.style.padding="5px 12px"; okBtn.style.cursor="pointer";
+  const cancelBtn=document.createElement("button"); cancelBtn.textContent="Cancel"; cancelBtn.style.padding="5px 12px"; cancelBtn.style.cursor="pointer";
+  btnDiv.appendChild(cancelBtn); btnDiv.appendChild(okBtn); inputModal.appendChild(btnDiv);
   document.body.appendChild(inputModal);
-  
-  okBtn.onclick = () => { pinIcon(icon, input.value); document.body.removeChild(inputModal); };
-  cancelBtn.onclick = () => { document.body.removeChild(inputModal); };
+  okBtn.onclick=()=>{pinIcon(icon,input.value);document.body.removeChild(inputModal);}
+  cancelBtn.onclick=()=>{document.body.removeChild(inputModal);}
 }
 
 // Search modal
-const resultsModal = document.getElementById("resultsModal");
-document.getElementById("closeResults").onclick = () => resultsModal.classList.remove("show");
-
-async function search() {
-  const q = document.getElementById("query").value;
-  const resBox = document.getElementById("results");
-  resBox.innerHTML = "<p>Searching...</p>";
+const resultsModal=document.getElementById("resultsModal");
+document.getElementById("closeResults").onclick=()=>resultsModal.classList.remove("show");
+async function search(){
+  const q=document.getElementById("query").value;
+  const resBox=document.getElementById("results");
+  resBox.innerHTML="<p>Searching...</p>";
   resultsModal.classList.add("show");
-
-  try {
-    const res = await fetch("/api/search?q=" + encodeURIComponent(q));
-    const data = await res.json();
-
-    resBox.innerHTML = "";
-    data.results.forEach(item => {
-      const el = document.createElement("div");
-      el.className = "item";
-      el.innerHTML = `<h3>${item.title}</h3><p>${item.text}</p><a href="${item.url}">Open result →</a>`;
+  try{
+    const res=await fetch("/api/search?q="+encodeURIComponent(q));
+    const data=await res.json();
+    resBox.innerHTML="";
+    data.results.forEach(item=>{
+      const el=document.createElement("div");
+      el.className="item";
+      el.innerHTML=`<h3>${item.title}</h3><p>${item.text}</p><a href="${item.url}">Open result →</a>`;
       resBox.appendChild(el);
     });
-  } catch {
-    resBox.innerHTML = "<p>Error fetching results.</p>";
+  }catch{
+    resBox.innerHTML="<p>Error fetching results.</p>";
   }
 }
 </script>
