@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Cube Search Floating</title>
+<title>Cube Search Floating with Popups</title>
 <style>
 /* Body */
 body {
@@ -18,7 +18,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Floating container */
+/* Floating panel */
 .floating-panel {
   position: relative;
   width: 90%;
@@ -31,6 +31,7 @@ body {
   flex-direction: column;
   align-items: center;
   z-index: 1;
+  transition: transform 0.3s ease;
 }
 
 /* Search Box */
@@ -48,6 +49,7 @@ body {
   background: #222;
   color: #fff;
   font-size: 16px;
+  transition: 0.2s;
 }
 .search-box input:focus {
   border-color: #4da6ff;
@@ -61,23 +63,50 @@ body {
   cursor: pointer;
   color: #fff;
   font-weight: 600;
+  transition: 0.2s;
+}
+.search-box button:hover {
+  opacity: 0.85;
 }
 
-/* Search Results */
-#results {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* Search results modal */
+#resultsModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: #111;
+  color: #eee;
+  border-radius: 20px;
+  padding: 20px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  z-index: 10;
+}
+#resultsModal.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+#resultsModal .closeBtn {
+  align-self: flex-end;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 .item {
-  background: #121212;
-  padding: 22px;
+  background: #222;
+  padding: 15px;
   border-radius: 14px;
-  border: 1px solid #222;
+  margin-bottom: 12px;
 }
-.item h3 { color: #fff; margin-bottom: 10px; }
-.item p { color: #bbb; margin-bottom: 12px; }
+.item h3 { color: #fff; margin-bottom: 6px; }
+.item p { color: #bbb; margin-bottom: 6px; }
 .item a { color: #4da6ff; text-decoration: none; font-weight: 600; }
 
 /* Sidebar */
@@ -112,6 +141,10 @@ body {
   color: #000;
   font-weight: bold;
   overflow: hidden;
+  transition: 0.2s;
+}
+.sidebar .icon:hover {
+  background: #ddd;
 }
 .sidebar .icon img {
   width: 32px;
@@ -150,7 +183,7 @@ body {
   border-radius: 5px;
 }
 
-/* Responsive for mobile */
+/* Responsive */
 @media (max-width: 768px) {
   .sidebar {
     top: 0;
@@ -167,10 +200,6 @@ body {
   }
   .hamburger {
     display: flex;
-  }
-  .floating-panel {
-    width: 95%;
-    max-width: none;
   }
   .overlay.show {
     display: block;
@@ -205,6 +234,11 @@ body {
     <input id="query" placeholder="Search anything..." />
     <button onclick="search()">Go</button>
   </div>
+</div>
+
+<!-- Search results modal -->
+<div id="resultsModal">
+  <div class="closeBtn" id="closeResults">✖</div>
   <div id="results"></div>
 </div>
 
@@ -216,7 +250,7 @@ body {
 </div>
 
 <script>
-// Sidebar functionality with favicons
+// Sidebar with favicons
 const icons = document.querySelectorAll(".sidebar .icon");
 const contextMenu = document.getElementById("contextMenu");
 const sidebar = document.getElementById("sidebar");
@@ -234,7 +268,7 @@ overlay.addEventListener("click", () => {
   overlay.classList.remove("show");
 });
 
-// Helper to get favicon URL
+// Get favicon
 function getFavicon(url) {
   try {
     const u = new URL(url);
@@ -244,32 +278,22 @@ function getFavicon(url) {
   }
 }
 
-// Pin function
+// Pin icon
 function pinIcon(icon, url) {
   icon.dataset.url = url;
   const faviconUrl = getFavicon(url);
   const img = new Image();
   img.src = faviconUrl;
-  img.onload = () => {
-    icon.innerHTML = "";
-    icon.appendChild(img);
-  };
-  img.onerror = () => {
-    icon.innerHTML = "^-^";
-  };
+  img.onload = () => { icon.innerHTML = ""; icon.appendChild(img); };
+  img.onerror = () => { icon.innerHTML = "^-^"; };
 }
 
-// Left click / Right click
+// Click / Right-click
 icons.forEach(icon => {
   icon.addEventListener("click", () => {
-    if (!icon.dataset.url) {
-      const url = prompt("Enter URL to pin:");
-      if (url) pinIcon(icon, url);
-    } else {
-      window.location.href = icon.dataset.url;
-    }
+    if (!icon.dataset.url) openPopup(icon, "Enter URL to pin:");
+    else window.location.href = icon.dataset.url;
   });
-
   icon.addEventListener("contextmenu", e => {
     e.preventDefault();
     if (!icon.dataset.url) return;
@@ -286,28 +310,69 @@ document.getElementById("openBtn").addEventListener("click", () => {
   contextMenu.style.display = "none";
 });
 document.getElementById("editBtn").addEventListener("click", () => {
-  if (currentIcon) {
-    const newUrl = prompt("Enter new URL:", currentIcon.dataset.url);
-    if (newUrl) pinIcon(currentIcon, newUrl);
-  }
+  if (currentIcon) openPopup(currentIcon, "Enter new URL:", currentIcon.dataset.url);
   contextMenu.style.display = "none";
 });
 document.getElementById("deleteBtn").addEventListener("click", () => {
-  if (currentIcon) {
-    currentIcon.dataset.url = "";
-    currentIcon.innerHTML = "+";
-  }
+  if (currentIcon) { currentIcon.dataset.url = ""; currentIcon.innerHTML = "+"; }
   contextMenu.style.display = "none";
 });
-document.addEventListener("click", e => {
-  if (!contextMenu.contains(e.target)) contextMenu.style.display = "none";
-});
+document.addEventListener("click", e => { if (!contextMenu.contains(e.target)) contextMenu.style.display = "none"; });
 
-// Cube Search functionality
+// Custom popup for input
+function openPopup(icon, message, defaultVal="") {
+  const inputModal = document.createElement("div");
+  inputModal.style.position="fixed";
+  inputModal.style.top="50%";
+  inputModal.style.left="50%";
+  inputModal.style.transform="translate(-50%,-50%)";
+  inputModal.style.background="#222";
+  inputModal.style.padding="20px";
+  inputModal.style.borderRadius="15px";
+  inputModal.style.zIndex="20";
+  inputModal.style.display="flex";
+  inputModal.style.flexDirection="column";
+  inputModal.style.gap="10px";
+  inputModal.style.minWidth="250px";
+  
+  const msg = document.createElement("div");
+  msg.textContent = message;
+  msg.style.color="#fff";
+  inputModal.appendChild(msg);
+  
+  const input = document.createElement("input");
+  input.value = defaultVal;
+  input.style.padding="8px";
+  input.style.borderRadius="8px";
+  input.style.border="1px solid #555";
+  input.style.background="#111";
+  input.style.color="#fff";
+  inputModal.appendChild(input);
+  
+  const btnDiv = document.createElement("div");
+  btnDiv.style.display="flex"; btnDiv.style.justifyContent="flex-end"; btnDiv.style.gap="10px";
+  const okBtn = document.createElement("button");
+  okBtn.textContent="OK"; okBtn.style.padding="5px 12px"; okBtn.style.cursor="pointer";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.textContent="Cancel"; cancelBtn.style.padding="5px 12px"; cancelBtn.style.cursor="pointer";
+  btnDiv.appendChild(cancelBtn); btnDiv.appendChild(okBtn);
+  inputModal.appendChild(btnDiv);
+  
+  document.body.appendChild(inputModal);
+  
+  okBtn.onclick = () => { pinIcon(icon, input.value); document.body.removeChild(inputModal); };
+  cancelBtn.onclick = () => { document.body.removeChild(inputModal); };
+}
+
+// Search modal
+const resultsModal = document.getElementById("resultsModal");
+document.getElementById("closeResults").onclick = () => resultsModal.classList.remove("show");
+
 async function search() {
   const q = document.getElementById("query").value;
   const resBox = document.getElementById("results");
   resBox.innerHTML = "<p>Searching...</p>";
+  resultsModal.classList.add("show");
 
   try {
     const res = await fetch("/api/search?q=" + encodeURIComponent(q));
@@ -317,11 +382,7 @@ async function search() {
     data.results.forEach(item => {
       const el = document.createElement("div");
       el.className = "item";
-      el.innerHTML = `
-        <h3>${item.title}</h3>
-        <p>${item.text}</p>
-        <a href="${item.url}">Open result →</a>
-      `;
+      el.innerHTML = `<h3>${item.title}</h3><p>${item.text}</p><a href="${item.url}">Open result →</a>`;
       resBox.appendChild(el);
     });
   } catch {
